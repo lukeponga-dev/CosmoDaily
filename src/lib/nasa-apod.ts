@@ -12,29 +12,57 @@ const ApodSchema = z.object({
 });
 
 export type ApodData = z.infer<typeof ApodSchema>;
-
-export type ApodResponse = ApodData | { code: number; msg: string; };
+export type ApodResponse = ApodData | { code: number; msg: string };
 
 export async function fetchApod(date: string): Promise<ApodResponse> {
   const apiKey = process.env.NASA_API_KEY || 'DEMO_KEY';
   const url = `https://api.nasa.gov/planetary/apod?api_key=${apiKey}&date=${date}`;
 
   try {
-    const response = await fetch(url, { next: { revalidate: 86400 } }); // Revalidate once a day
+    const response = await fetch(url, { next: { revalidate: 86400 } });
+
+    const text = await response.text();
     if (!response.ok) {
-        const errorData = await response.json();
-        console.error('NASA API Error:', errorData);
-        return { code: response.status, msg: errorData.msg || `API request failed with status ${response.status}` };
+      console.error('NASA API Error:', response.status, text);
+      return {
+        code: response.status,
+        msg: `API request failed with status ${response.status}: ${text}`,
+      };
     }
-    const data = await response.json();
+
+    let data: unknown;
+    try {
+      data = text ? JSON.parse(text) : null;
+    } catch (err) {
+      console.error('Invalid JSON from NASA API:', text);
+      return {
+        code: 500,
+        msg: 'NASA API returned invalid JSON.',
+      };
+    }
+
     const parsedData = ApodSchema.safeParse(data);
     if (!parsedData.success) {
       console.error('Zod parsing error:', parsedData.error);
-      return { code: 500, msg: "Failed to parse API response." };
+      return {
+        code: 500,
+        msg: 'Failed to parse API response.',
+      };
     }
+
     return parsedData.data;
   } catch (error) {
     console.error('Error fetching APOD:', error);
+    return {
+      code: 500,
+      msg: error instanceof Error ? error.message : 'Unknown error occurred.',
+    };
+  }
+}
+
+export function isApodError(response: ApodResponse): response is { code: number; msg: string } {
+  return 'code' in response;
+}    console.error('Error fetching APOD:', error);
     if (error instanceof Error) {
         return { code: 500, msg: error.message };
     }
