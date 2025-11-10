@@ -62,14 +62,4 @@ export async function fetchApod(date: string): Promise<ApodResponse> {
 
 export function isApodError(response: ApodResponse): response is { code: number; msg: string } {
   return 'code' in response;
-}    console.error('Error fetching APOD:', error);
-    if (error instanceof Error) {
-        return { code: 500, msg: error.message };
-    }
-    return { code: 500, msg: 'An unknown error occurred while fetching APOD data.' };
-  }
-}
-
-export function isApodError(response: ApodResponse): response is { code: number; msg: string } {
-    return 'code' in response;
 }
