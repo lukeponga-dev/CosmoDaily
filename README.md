@@ -1,6 +1,6 @@
-# Stellar Stories
+# NASA APOD API 
 
-Welcome to Stellar Stories, a web application that allows you to explore the universe through NASA's Astronomy Picture of the Day (APOD) API.
+a web application that allows you to explore the universe through NASA's Astronomy Picture of the Day (APOD) API.
 
 ## Features
 
